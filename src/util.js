@@ -1,54 +1,69 @@
+cash.extend = fn.extend = function(target) {
+  target = target || {};
 
-$.each = function(collection,callback){
-  for(var i = 0; i < collection.length; i++){
-    callback.call(collection[i],collection[i],i,collection);
+  var args = slice.call(arguments),
+      length = args.length,
+      i = 1;
+
+  if ( args.length === 1) {
+    target = this;
+    i = 0;
   }
-};
 
-$.extend = function(obj) {
-    if (typeof obj !== "object") { return obj; }
-    var source, prop;
-    for (var i = 1, length = arguments.length; i < length; i++) {
-      source = arguments[i];
-      for (prop in source) {
-        if (hasOwnProperty.call(source, prop)) {
-            obj[prop] = source[prop];
-        }
-      }
+  for (; i < length; i++) {
+    if (!args[i]) { continue; }
+    for (var key in args[i]) {
+      if ( args[i].hasOwnProperty(key) ) { target[key] = args[i][key]; }
     }
-    return obj;
-};
-
-$.matches = function(el, selector) {
-  return (el.matches || el.matchesSelector || el.msMatchesSelector || el.mozMatchesSelector || el.webkitMatchesSelector || el.oMatchesSelector).call(el, selector);
-};
-
-$.merge = function( first, second ) {
-  var len = +second.length,
-    j = 0,
-    i = first.length;
-  for ( ; j < len; j++ ) {
-    first[ i++ ] = second[ j ];
   }
-  first.length = i;
-  return first;
+
+  return target;
 };
 
-$.noop = function(){};
+function each(collection, callback) {
+  var l = collection.length,
+      i = 0;
 
-$.parseHTML = function(str) {
-  var parsed = (/^<(\w+)\s*\/?>(?:<\/\1>|)$/).exec(str);
-  if(parsed) {
-    return [document.createElement(parsed[1])];
+  for (; i < l; i++) {
+    if ( callback.call(collection[i], collection[i], i, collection) === false ) { break; }
   }
-  parsed = buildFragment(str);
-  return [].slice.call(parsed.childNodes);
-};
-
-function buildFragment(str){
-  var fragment, tmp;
-  fragment = fragment || document.createDocumentFragment();
-  tmp = tmp || fragment.appendChild(document.createElement("div"));
-  tmp.innerHTML = str;
-  return tmp;
 }
+
+function matches(el, selector) {
+  return (
+    el.matches ||
+    el.webkitMatchesSelector ||
+    el.mozMatchesSelector ||
+    el.msMatchesSelector ||
+    el.oMatchesSelector
+  ).call(el, selector);
+}
+
+function unique(collection) {
+  return cash(slice.call(collection).filter((item, index, self) => {
+    return self.indexOf(item) === index;
+  }));
+}
+
+cash.extend({
+
+  merge(first, second) {
+    var len = +second.length,
+        i = first.length,
+        j = 0;
+
+    for (; j < len; i++, j++) {
+      first[i] = second[j];
+    }
+
+    first.length = i;
+    return first;
+  },
+
+  each: each,
+  matches: matches,
+  unique: unique,
+  isArray: Array.isArray,
+  isNumeric(n) { return !isNaN(parseFloat(n)) && isFinite(n); }
+
+});

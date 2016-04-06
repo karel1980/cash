@@ -1,59 +1,94 @@
+var notWhiteMatch = /\S+/g;
 
-_.addClass = function(className){ // TODO: tear out into module for IE9
-  this.each(function(v){
-    if(v.classList) {
-      v.classList.add(className);
+function hasClass(v,c) {
+  return ( v.classList ?
+    v.classList.contains(c) :
+    new RegExp('(^| )' + c + '( |$)', 'gi').test(v.className)
+  );
+}
+
+function addClass(v,c,spacedName){
+  if (v.classList) { v.classList.add(c); }
+  else if ( spacedName.indexOf(` ${c} `) ) { v.className += ' ' + c; }
+}
+
+function removeClass(v,c){
+  if (v.classList) { v.classList.remove(c); }
+  else { v.className = v.className.replace(c,''); }
+}
+
+fn.extend({
+
+  addClass(c){
+    var classes = c.match(notWhiteMatch);
+
+    return this.each(v => {
+      var spacedName = ` ${v.className} `;
+      each(classes,c => { addClass(v,c,spacedName); });
+    });
+  },
+
+  attr(name, value) {
+    var attrs = {};
+    if (value) {
+      attrs[name] = value;
     } else {
-      v.className += " " + className;
+      if (typeof name === 'string') {
+        return this[0].getAttribute(name);
+      }
+      attrs = name;
     }
-  });
-  return this;
-};
+    this.each(function(v){
+      for (var key in attrs) {
+        v.setAttribute(key, attrs[key]);
+      }
+    });
+    return this;
+  },
 
-_.attr = function(attr,value) {
-  var attrs = {};
-  if (value) {
-    attrs[attr] = value;
-  } else {
-    if (typeof attr === "string") {
-      return this[0].getAttribute(attr);
-    }
-    attrs = attr;
-  }
-  this.each(function(v){
-    for (var key in attrs) {
-      v.setAttribute(key, attrs[key]);
-    }
-  });
-  return this;
-};
+  hasClass(c) {
+    var check = false;
+    this.each(v => {
+      check = hasClass(v,c);
+      return !check;
+    });
+    return check;
+  },
 
-_.hasClass = function(className){ // TODO: tear out into module for IE9
-  if(this[0].classList) {
-    return this[0].classList.contains(className);
-  } else {
-    return this[0].className.indexOf(className) !== -1;
-  }
-};
+  prop(name,value) {
+    if ( !value ) { return this[0][name]; }
+    return this.each(v => { v[name] = value; });
+  },
 
-_.prop = function(prop){
-  return this[0][prop];
-}; 
+  removeAttr(name) {
+    return this.each(v => {
+      if ( v.removeAttribute ) { v.removeAttribute(name); }
+      else { delete v[name]; }
+    });
+  },
 
-_.removeAttr = function(attr){
-  this.each(function(v){
-    v.removeAttribute(attr);
-  });
-  return this;
-};
+  removeClass(c){
+    var classes = c.match(notWhiteMatch);
 
-_.removeClass = function(className){ // TODO: tear out into module for IE9
-  this.each(function(v){
-    if(v.classList) {
-      v.classList.remove(className);
-    } else {
-      v.className = v.className.replace(className,"");
-    }
-  });
-  return this;
-};
+    return this.each(v => {
+      each(classes,c => { removeClass(v,c); });
+    });
+  },
+
+  removeProp(name){
+    return this.each(v => { delete v[name]; });
+  },
+
+  toggleClass(c, state){
+    if ( state !== undefined ) { return this[state ? 'addClass' : 'removeClass' ](c); }
+    var classes = c.match(notWhiteMatch);
+
+    return this.each(v => {
+      var spacedName = ` ${v.className} `;
+      each(classes,c => {
+        if ( hasClass(v,c) ) { removeClass(v,c); } else { addClass(v,c,spacedName); }
+      });
+    });
+  },
+
+});

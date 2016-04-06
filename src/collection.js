@@ -1,39 +1,38 @@
+fn.extend({
 
-_.each = function(callback){
-  $.each(this, callback);
-};
+  add(selector, context) {
+    return unique(cash.merge(this, cash(selector, context)));
+  },
 
-_.eq = function(index){
-  return $(this[index]);
-};
+  each(callback) {
+    each(this, callback);
+    return this;
+  },
 
-_.filter = function(){
-  if(typeof arguments[0] === "string") {
-    var selector = arguments[0];
-    return Array.prototype.filter.call(this, function(e){
-      return $.matches(e, selector);
-    });
-  } else {
-    return Array.prototype.filter.call(this, arguments[0]);
+  eq(index) {
+    return cash(this.get(index));
+  },
+
+  filter(selector) {
+    return filter.call(this, ( isString(selector) ? e => matches(e, selector) : selector ));
+  },
+
+  first() {
+    return this.eq(0);
+  },
+
+  get(index) {
+    if ( index === undefined ) { return slice.call(this); }
+    return ( index < 0 ? this[index + this.length] : this[index] );
+  },
+
+  index(elem) {
+    var f = this[0];
+    return slice.call( elem ? cash(elem) : cash(f).parent().children() ).indexOf(f);
+  },
+
+  last() {
+    return this.eq(-1);
   }
-};
 
-_.first = function(){
-  return $(this[0]);
-};
-
-_.get = function( num ) {
-  return this[num];
-};
-
-_.index = function(elem){
-  if(!elem) {
-    return Array.prototype.slice.call($(this[0]).parent().children()).indexOf(this[0]);
-  } else {
-    return Array.prototype.slice.call($(elem).children()).indexOf(this[0]);
-  }
-};
-
-_.last = function(){
-  return $(this[this.length -1]);
-};
+});
